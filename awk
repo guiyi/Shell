@@ -6,6 +6,76 @@ zcat   5www1_www.tgz  |grep -a "default-e.php" |awk '{++S[$NF]} END {for(a in S)
 
 zcat   5www1_www.tgz  |grep -a "default-e.php" |awk '{++S[$4]} END {for(a in S) print a, S[a]}'
 
+********************* 2014-08-07 ***************************************************************************************************************************
+
+cat mid.txt |grep -a '5www' |grep -wE '?area=beijing|?area=010000'|awk -F '\\t' '{print $1}'|sort|uniq -c|wc -l
+cat mid.txt |grep -a '5www' |grep -wE '?area=shanghai|?area=020000'|awk -F '\\t' '{print $1}'|sort|uniq -c|wc -l
+cat mid.txt |grep -a '5www' |grep -wE '?area=guangzhou|?area=030200'|awk -F '\\t' '{print $1}'|sort|uniq -c|wc -l
+cat mid.txt |grep -a '5www' |grep -wE '?area=shenzhen|?area=040000'|awk -F '\\t' '{print $1}'|sort|uniq -c|wc -l
+
+cat mid.txt |grep -a 'tjwww' |grep -wE '?area=beijing|?area=010000'|awk -F '\\t' '{print $1}'|sort|uniq -c|wc -l
+cat mid.txt |grep -a 'tjwww' |grep -wE '?area=shanghai|?area=020000'|awk -F '\\t' '{print $1}'|sort|uniq -c|wc -l
+cat mid.txt |grep -a 'tjwww' |grep -wE '?area=guangzhou|?area=030200'|awk -F '\\t' '{print $1}'|sort|uniq -c|wc -l
+cat mid.txt |grep -a 'tjwww' |grep -wE '?area=shenzhen|?area=040000'|awk -F '\\t' '{print $1}'|sort|uniq -c|wc -l
+
+
+
+
+cat  201406*/mid*.txt >201406.txt
+cat  201407*/mid*.txt >201407.txt
+
+cat /hadoop_tmp/adair/201406.txt | grep -a '5www' | awk '{if($4=="?area=beijing" || $4=="?area=010000" print $0}'|awk   '{print $1}'|sort|uniq -c|wc -l
+
+cat /hadoop_tmp/adair/201406.txt |grep -a '5www' |awk  '{if($4=="?area=beijing" || $4=="?area=010000")  print $1}'|sort|uniq -c|wc -l
+cat /hadoop_tmp/adair/201406.txt |grep -a '5www' |awk  '{if($4=="?area=shanghai" || $4=="?area=020000")  print $0}'|awk  '{print $1}'|sort|uniq -c|wc -l
+cat /hadoop_tmp/adair/201406.txt |grep -a 'tjwww' |awk  '{if($4=="?area=shanghai" || $4=="?area=020000")  print $0}'|awk  '{print $1}'|sort|uniq -c|wc -l
+
+
+
+
+
+
+60 = "compatible; Indy Library"
+
+
+
+cat /hadoop_tmp/adair/20140601/mid_a.txt |grep -a '5www' |awk -F '\\t' '{if($3=="/default.php" || $3=="/" || $3==" ")  print $0}'|awk '{print $1}'|sort|uniq -c|wc -l
+
+
+
+
+select count(1) from 51_log_20140601 where    channel='5www'  and url='/default.php'  or url='/'   or url='' ; 
+
+
+INSERT OVERWRITE LOCAL DIRECTORY '/hadoop_tmp/adair/nanjing' select ip, getfs,url,getcs,agent,channel  from 51_log_20140601 where    channel='5www'  and url='/default.php'  or url='/'   or url='' ; 
+
+
+
+
+grep -a 'newehireweb' |grep -a '/MainLogin.aspx'|wc -l
+cat /hadoop_tmp/adair/${name}/mid_bbs.txt |grep -a 'newehireweb' |grep -a '/MainLogin.aspx'|wc -l>>pv_res${name}.txt
+
+cat /hadoop_tmp/adair/20140603/mid_bbs.txt |grep -a 'newehireweb' |grep -a '/MainLogin.aspx'|wc -l>>pv_res06${name}.txt
+cat /hadoop_tmp/adair/20140601/mid_a.txt |grep -a '5www' |awk -F '\\t' '{if($3=="/default.php" || $3=="/" || $3==" ") print $3}'|wc -l
+
+
+select ip, getfs,url,getcs,agent,channel  from  51_log_20140601  where channel='newehireweb'   and url='/MainLogin.aspx' or (url='/index.php'  and channel='bbs') limit 100
+
+
+
+
+INSERT OVERWRITE LOCAL DIRECTORY '/hadoop_tmp/adair/20140630bbs' select ip, getfs,url,getcs,agent,channel  from 51_log_20140630  where channel='newehireweb'   and url='/MainLogin.aspx'  ;
+
+cat  /hadoop_tmp/adair/20140630bbs/0000*|python pageview_month_notArea.py >>/hadoop_tmp/adair/20140630bbs/mid_bbs.txt
+cat /hadoop_tmp/adair/20140630bbs/mid_bbs.txt |grep -a 'newehireweb' |grep -a '/MainLogin.aspx'|wc -l
+
+
+
+
+ cat  mid.txt | grep -a 'tjwww' |grep -wE '?area=yantai|?area=120400' |   awk -F'\\t' '{print $1}'|sort|uniq -c|sort -k1 -n -r|more
+
+
+ cat  mid_a.txt |grep -a '5www' |awk -F '\\t' '{if($3=="/default.php" || $3=="/" || $3==" ") print $1}' |sort|uniq -c|sort -k1 -n -r|more
 
 
 zcat   5www1_www.tgz  |awk 'BEGIN{info = "default-e.php";split(info,tA," ");for(k in tA){print k,tA[k];}}'
