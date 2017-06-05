@@ -1,0 +1,301 @@
+Centos Linux下查看服务器信息的方法
+经常有客户咨询云志互联查看服务器一些硬件配置的方法，下面将以Centos为例，将各种信息的查看方法与用户分享。本教程使用于Centos,Debian等各Linux发行版
+1 查看服务器CPU型号
+more /proc/cpuinfo | grep "model name"
+grep "model name" /proc/cpuinfo
+grep "model name" /proc/cpuinfo | cut -f2 -d:
+2 查看服务器内存容量
+grep MemTotal /proc/meminfo
+grep MemTotal /proc/meminfo | cut -f2 -d:
+free -m |grep "Mem" | awk '{print $2}'
+3 查看服务器的CPU是32位还是64位
+getconf LONG_BIT
+4 查看当前Linux的版本
+more /etc/redhat-release cat /etc/redhat-release
+5 查看Linux内核版本
+uname -r
+uname -a
+6 查看服务器当前时间
+date
+7 查看服务器硬盘和分区
+df -h
+fdisk -l
+8 查看目录大小
+du /etc -sh
+9 查看服务器初始安装的软件包
+cat -n /root/install.log
+more /root/install.log | wc -l
+10 查看已经安装的软件包
+rpm -qa
+rpm -qa | wc -l
+yum list installed | wc -l
+11 查看服务器键盘布局
+cat /etc/sysconfig/keyboard
+cat /etc/sysconfig/keyboard | grep KEYTABLE | cut -f2 -d=
+查看Selinux状态
+sestatus
+sestatus | cut -f2 -d:
+cat /etc/sysconfig/selinux
+12 查看服务器网卡的ip，Mac地址
+在ifcfg-eth0 文件里你可以看到mac，网关等信息。
+ifconfig
+cat /etc/sysconfig/network-scripts/ifcfg-eth0 | grep IPADDR
+cat /etc/sysconfig/network-scripts/ifcfg-eth0 | grep IPADDR | cut -f2 -d=
+ifconfig eth0 |grep "inet addr:" |awk '{print $2}'|cut -c 6-
+ifconfig | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}'
+13 查看服务器默认网关
+cat /etc/sysconfig/network
+14 查看服务器的默认DNS
+cat /etc/resolv.conf
+15 查看服务器默认语言
+echo $LANG $LANGUAGE
+cat /etc/sysconfig/i18n
+16 查看服务器所属时区和UTC时间
+cat /etc/sysconfig/clock
+17 查看服务器主机名
+hostname
+cat /etc/sysconfig/network
+
+CentOS查看CPU、内存、网络流量和磁盘 I/O【详细】
+安装 yum install -y sysstat
+sar -d 1 1
+rrqm/s: 每秒进行 merge 的读操作数目。即 delta(rmerge)/s
+wrqm/s: 每秒进行 merge 的写操作数目。即 delta(wmerge)/s
+r/s: 每秒完成的读 I/O 设备次数。即 delta(rio)/s
+w/s: 每秒完成的写 I/O 设备次数。即 delta(wio)/s
+rsec/s: 每秒读扇区数。即 delta(rsect)/s
+wsec/s: 每秒写扇区数。即 delta(wsect)/s
+rkB/s: 每秒读K字节数。是 rsect/s 的一半，因为每扇区大小为512字节。(需要计算)
+wkB/s: 每秒写K字节数。是 wsect/s 的一半。(需要计算)
+avgrq-sz: 平均每次设备I/O操作的数据大小(扇区)。delta(rsect+wsect)/delta(rio+wio)
+avgqu-sz: 平均I/O队列长度。即 delta(aveq)/s/1000(因为aveq的单位为毫秒)。
+await: 平均每次设备I/O操作的等待时间(毫秒)。即 delta(ruse+wuse)/delta(rio+wio)
+svctm: 平均每次设备I/O操作的服务时间(毫秒)。即 delta(use)/delta(rio+wio)
+%util: 一秒中有百分之多少的时间用于 I/O 操作，或者说一秒中有多少时间 I/O 队列是非空的。即 delta(use)/s/1000(因为use的单位为毫秒)
+如果 %util 接近 100%，说明产生的I/O请求太多，I/O系统已经满负荷，该磁盘
+可能存在瓶颈。
+idle小于70% IO压力就较大了,一般读取速度有较多的wait.
+同时可以结合vmstat 查看查看b参数(等待资源的进程数)和wa参数(IO等待所占用的CPU时间的百分比,高过30%时IO压力高)
+另外还可以参考
+svctm 一般要小于 await(因为同时等待的请求的等待时间被重复计算了)，svctm 的大小一般和磁盘性能有关，CPU/内存的负荷也会对其有影响，请求过多也会间接导致 svctm 的增加。await 的大小一般取决于服务时间(svctm) 以及 I/O 队列的长度和 I/O 请求的发出模式。如果 svctm 比较接近 await，说明 I/O 几乎没有等待时间；如果 await 远大于 svctm，说明 I/O 队列太长，应用得到的响应时间变慢，如果响应时间超过了用户可以容许的范围，这时可以考虑更换更快的磁盘，调整内核 elevator 算法，优化应用，或者升级 CPU。
+队列长度(avgqu-sz)也可作为衡量系统 I/O 负荷的指标，但由于 avgqu-sz 是按照单位时间的平均值，所以不能反映瞬间的 I/O 洪水。
+在命令行方式下，如何查看CPU、内存的使用情况，网络流量和磁盘I/O？
+Q: 在命令行方式下，如何查看CPU、内存的使用情况，网络流量和磁盘I/O？
+
+A: 在命令行方式下，
+1. 查看CPU使用情况的命令
+$ vmstat 5
+每5秒刷新一次，最右侧有CPU的占用率的数据
+$ top
+top 然后按Shift+P，按照进程处理器占用率排序
+2. 查看内存使用情况的命令
+$ free
+top 然后按Shift+M, 按照进程内存占用率排序
+$ top
+3. 查看网络流量
+可以用工具iptraf工具
+$ iptraf -g
+“”针对某个Interface的网络流量可以通过比较两个时间网络接口的RX和TX数据来获得
+$ date; ifconfig eth1
+$ date; ifconfig eth1
+4. 查看磁盘i/o
+$ iostat -d -x /dev/sdc3 2
+用iostat查看磁盘/dev/sdc3的磁盘i/o情况，每两秒刷新一次
+$ vmstat 2
+用vmstat查看io部分的信息
+procs:
+r–>;在运行队列中等待的进程数
+b–>;在等待io的进程数
+w–>;可以进入运行队列但被替换的进程
+memoy
+swap–>;现时可用的交换内存（k表示)
+free–>;空闲的内存（k表示)
+pages
+re－－》回收的页面
+mf－－》非严重错误的页面
+pi－－》进入页面数（k表示)
+po－－》出页面数（k表示)
+fr－－》空余的页面数（k表示)
+de－－》提前读入的页面中的未命中数
+sr－－》通过时钟算法扫描的页面
+disk 显示每秒的磁盘操作。 s表示scsi盘，0表示盘号
+fault 显示每秒的中断数
+in－－》设备中断
+sy－－》系统中断
+cy－－》cpu交换
+cpu 表示cpu的使用状态
+cs－－》用户进程使用的时间
+sy－－》系统进程使用的时间
+id－－》cpu空闲的时间
+其中:
+如果 r经常大于 4 ，且id经常少于40，表示cpu的负荷很重。
+如果pi，po 长期不等于0，表示内存不足。
+如果disk 经常不等于0， 且在 b中的队列 大于3， 表示io性能不好。
+
+磁盘I/O性能监控命令
+1) iostat命令
+iostat 命令主要通过观察物理磁盘的活动时间以及他们的平均传输速度，监控系统输入 / 输出设备负载。根据 iostat 命令产生的报告，用户可确定一个系统配置是否平衡，并据此在物理磁盘与适配器之间更好地平衡输入 / 输出负载。 iostat 工具的主要目的是通过监控磁盘的利用率，而探测到系统中的 I/O 瓶颈。不同操作系统命令格式输出格式略有不同，管理员可以通过查看用户手册来确定它的用法。
+安装 iostat
+iostat命令，如果没有使用命令，则需要进行安装。
+安装命令
+apt-get install sysstat
+deb包下载地址(Ubuntu Server 9.10)
+http://tw.archive.ubuntu.com/ubuntu/pool/main/s/sysstat/sysstat_9.0.3-2ubuntu1_amd64.deb
+targz包下载地址
+http://pagesperso-orange.fr/sebastien.godard/sysstat-9.1.1.tar.gz
+2) sar命令
+sar 命令报告 CPU 的使用情况， I/O 以及其它系统行为。 sar 命令可以收集，报告以及保存系统行为信息。以这种方式收集到的数据对于确定系统的时间周期特征和决定峰值使用时间是很有用的。但要注意的是， sar 命令自己运行时会产生相当数量的读写，因此最好在没有工作量的情况下运行 sar 统计，看看 sar 对总的统计数字有多大的影响。
+
+2.磁盘 I/O 性能指标
+在介绍磁盘 I/O 监控命令前，我们需要了解磁盘 I/O 性能监控的指标，以及每个指标的所揭示的磁盘某方面的性能。磁盘 I/O 性能监控的指标主要包括：
+1) 每秒 I/O 数(IOPS 或 tps)
+对于磁盘来说，一次磁盘的连续读或者连续写称为一次磁盘 I/O, 磁盘的 IOPS 就是每秒磁盘连续读次数和连续写次数之和。当传输小块不连续数据时，该指标有重要参考意义。
+2) 吞吐量(Throughput)
+指硬盘传输数据流的速度，传输数据为读出数据和写入数据的和。其单位一般为 Kbps, MB/s 等。当传输大块不连续数据的数据，该指标有重要参考作用。
+3) 平均 I/O 数据尺寸
+平均 I/O 数据尺寸为吞吐量除以 I/O 数目，该指标对揭示磁盘使用模式有重要意义。一般来说，如果平均 I/O 数据尺寸小于 32K，可认为磁盘使用模式以随机存取为主；如果平均每次 I/O 数据尺寸大于 32K，可认为磁盘使用模式以顺序存取为主。
+4) 磁盘活动时间百分比(Utilization)%util
+磁盘处于活动时间的百分比，即磁盘利用率，磁盘在数据传输和处理命令（如寻道)处于活动状态。磁盘利用率与资源争用程度成正比，与性能成反比。也就是说磁盘利用率越高，资源争用就越严重，性能也就越差，响应时间就越长。一般来说，如果磁盘利用率超过 70%，应用进程将花费较长的时间等待 I/O 完成，因为绝大多数进程在等待过程中将被阻塞或休眠。
+5) 服务时间(ServiceTime)svctm
+指磁盘读或写操作执行的时间，包括寻道，旋转时延，和数据传输等时间。其大小一般和磁盘性能有关， CPU/ 内存的负荷也会对其有影响，请求过多也会间接导致服务时间的增加。如果该值持续超过 20ms，一般可考虑会对上层应用产生影响。
+6) I/O 等待队列长度(Queue Length)
+指待处理的 I/O 请求的数目，如果 I/O 请求压力持续超出磁盘处理能力，该值将增加。如果单块磁盘的队列长度持续超过 2，一般认为该磁盘存在 I/O 性能问题。需要注意的是，如果该磁盘为磁盘阵列虚拟的逻辑驱动器，需要再将该值除以组成这个逻辑驱动器的实际物理磁盘数目，以获得平均单块硬盘的 I/O 等待队列长度。
+7) 等待时间(Wait Time)
+指磁盘读或写操作等待执行的时间，即在队列中排队的时间。如果 I/O 请求持续超出磁盘处理能力，意味着来不及处理的 I/O 请求不得不在队列中等待较长时间。通过监控以上指标，并将这些指标数值与历史数据，经验数据以及磁盘标称值对比，必要时结合 CPU、内存、交换分区的使用状况，不难发现磁盘 I/O潜在或已经出现的问题。但如果避免和解决这些问题呢？这就需要利用到磁盘 I/O 性能优化方面的知识和技术。限于本文主题和篇幅，仅列出一些常用的优化方法供读者参考：
+(1)调整数据布局，尽量将 I/O 请求较合理的分配到所有物理磁盘中；
+(2)对于 RAID 磁盘阵列，尽量使应用程序 I/O 等于条带尺寸或者为条带尺寸的倍数。并选取合适的 RAID 方式，如 RAID10， RAID5；
+(3)增大磁盘驱动程序的队列深度，但不要超过磁盘的处理能力，否则，部分 I/O 请求会因为丢失而重新发出，这将降低性能；
+(4)应用缓存技术减少应用存取磁盘的次数，缓存技术可应用在文件系统级别或者应用程序级别；
+(5)由于多数数据库中已包括经优化后的缓存技术，数据库 I/O 宜直接存取原始磁盘分区(rawpartition)或者利用绕过文件系统缓存的 DIO 技术(direct IO)；
+(6)利用内存读写带宽远比直接磁盘 I/O 操作性能优越的特点，将频繁访问的文件或数据置于内存中。
+
+3.iostat 使用
+[命令 :] iostat [-c|-d] [-k] [-t] [间隔描述 ] [检测次数 ]
+参 数：
+-c : 仅显示 cpu的状态
+-d : 仅显示存储设备的状态，不可以和 -c一起使用
+-k : 默认显示的是读入读出的 block信息，用 -k可以改成 KB大小来显示
+-t: 显示日期
+-p device | ALL : device为某个设备或者某个分区，如果使用 ALL，就表示要显示所有分区和设备的信息
+1)基本使用
+$iostat-d -k 1 10
+说明： 参数 -d 表示，显示设备（磁盘)使用状态； -k 某些使用 block 为单位的列强制使用 Kilobytes 为单位； 1 10 表示，数据显示每隔 1 秒刷新一次，共显示 10 次 ，每一次的统计都是上一次的统计时间到这次的统计时间之间的统计数据。
+2)-x 参数
+使用 -x 参数我们可以获得更多统计信息。
+$iostat -d -x -k 1 10
+3)-c 参数
+获取 cpu 部分状态值
+$iostat -c 1 10
+4)常见用法
+$iostat -d -k 1 10
+# 查看 TPS 和吞吐量信息
+$iostat -d -x -k 1 10
+# 查看设备使用率(%util)、响应时间(await)
+$iostat -c 1 10
+# 查看 cpu 状态
+5)mpstat 命令
+mpstat 是 MultiProcessor Statistics 的缩写，是实时系统监控工具。其报告与 CPU 的一些统计信息，这些信息存放在 /proc/stat 文件中。在多 CPUs 系统里，其不但能查看所有 CPU 的平均状况信息，而且能够查看特定 CPU 的信息。下面只介绍 mpstat 与 CPU 相关的参数， mpstat 的语法如下：
+mpstat [-P {|ALL}] [internal [count]]
+参数解释
+-P {|ALL} 表示监控哪个 CPU ， cpu 在 [0,cpu 个数 -1] 中取值
+internal 相邻的两次采样的间隔时间
+count 采样的次数， count 只能和 delay 一起使用
+当没有参数时， mpstat 则显示系统启动以后所有信息的平均值。有 interval 时，第一行的信息自系统启动以来的平均信息。
+(1)$mpstat
+mpstat 不带参数时，输出为从系统启动以来的平均值。
+(2)$mpstat-P ALL 2 3
+2 秒产生所有处理器的统计数据报告 ，统计三次，默认输出所有的处理器的统计数据；
+(3)$mpstat–P 0 2 3
+2 秒产生 0 号处理器的统计数据报告，统计三次；
+4.iostat 相关参数说明
+参数 英文说明 说明
+rrqm/s read request merge 每秒进行merge的读操作数目。即delta(rmerge)/s
+wrqm/s write request merge 每秒进行merge的写操作数目。即delta(wmerge)/s
+r/s read 每秒完成的读I/O设备次数。即delta(rio)/s
+w/s write 每秒完成的写I/O设备次数。即delta(wio)/s
+rsec/s read section 每秒读扇区数。即delta(rsect)/s
+wsec/s write section 每秒写扇区数。即delta(wsect)/s
+rkB/s read kilo byte 每秒读 K字节数。是rsect/s的一半，因为每扇区大小为 512字节。(需要计算)
+wkB/s write kilo byte 每秒写 K字节数。是wsect/s的一半。(需要计算)
+avgrq-sz average request size 平均每次设备I/O操作的数据大小(扇区)。delta(rsect+wsect)/delta(rio+wio)
+avgqu-sz average queue size 平均I/O队列长度。即delta(aveq)/s/1000(因为 aveq的单位为毫秒)
+await average wait 平均每次设备I/O操作的等待时间(毫秒)。即delta(ruse+wuse)/delta(rio+wio)
+svctm service time 平均每次设备I/O操作的服务时间(毫秒)。即delta(use)/delta(rio+wio)
+%util utilty 一秒中有百分之多少的时间用于I/O操作，或者说一秒中有多少时间I/O队列是非空的。即delta(use)/s/1000(因为use的单位为毫秒)
+
+如果 %util接近100%，说明产生的 I/O请求太多， I/O系统已经满负荷，该磁盘可能存在瓶颈， idle小于 70% IO压力就较大了 ,一般读取速度有较多的 wait。同时可以结合 vmstat(virtual memory status)查看 b参数(等待资源的进程数)和 wa参数(IO等待所占用的 CPU时间的百分比 ,高过 30%时 IO压力高)
+另外还可以参考 svctm，由于它一般要小于 await(因为同时等待的请求的等待时间被重复计算了)， svctm 的大小一般和磁盘性能有关， CPU/内存的负荷也会对其有影响，请求过多也会间接导致 svctm 的增加。 await 的大小一般取决于服务时间(svctm) 以及 I/O 队列的长度和 I/O 请求的发出模式。如果 svctm 比较接近 await，说明 I/O 几乎没有等待时间；如果 await 远大于 svctm，说明 I/O 队列太长，应用得到的响应时间变慢，如果响应时间超过了用户可以容许的范围，这时可以考虑更换更快的磁盘，调整内核 elevator 算法，优化应用，或者升级 CPU。队列长度(avgqu-sz)也可作为衡量系统 I/O 负荷的指标，但由于 avgqu-sz 是按照单位时间的平均值，所以不能反映瞬间的 I/O 洪水。
+5.例子(I/O 系统 vs. 超市排队)
+举一个例子，我们在超市排队 checkout 时，怎么决定该去哪个交款台呢 ? 首当是看排的队人数， 5个人总比 20人要快吧 ? 除了数人头，我们也常常看看前面人购买的东西多少，如果前面有个采购了一星期食品的大妈，那么可以考虑换个队排了。还有就是收银员的速度了，如果碰上了连 钱都点不清楚的新手，那就有的等了。另外，时机也很重要，可能 5 分钟前还人满为患的收款台，现在已是人去楼空，这时候交款可是很爽啊，当然，前提是那过去的 5 分钟里所做的事情比排队要有意义(不过我还没发现什么事情比排队还无聊的)。
+I/O 系统也和超市排队有很多类似之处 :
+Ø r/s+w/s 类似于交款人的总数
+Ø 平均队列长度(avgqu-sz)类似于单位时间里平均排队人的个数
+Ø 平均服务时间(svctm)类似于收银员的收款速度
+Ø 平均等待时间(await)类似于平均每人的等待时间
+Ø 平均 I/O数据(avgrq-sz)类似于平均每人所买的东西多少
+Ø I/O 操作率(%util)类似于收款台前有人排队的时间比例。
+参数输出的分析
+#iostat -x 1
+avg-cpu: %user %nice %sys %idle
+16.24 0.00 4.31 79.44
+Device: rrqm/s wrqm/s r/s w/s rsec/s wsec/s rkB/s wkB/s avgrq-sz avgqu-sz await svctm %util
+sda 0.00 44.90 1.02 27.55 8.16 579.59 4.08 289.80 20.57 22.35 78.21 5.00 14.29
+
+上面的 iostat 输出表明秒有 28.57 次设备 I/O 操作 :
+总 IO(io)/s=r/s(读)+w/s(写)=1.02+27.55 = 28.57(次 /秒) 其中写操作占了主体(w:r = 27:1)
+平均每次设备 I/O操作只需要 5ms就可以完成，但每个 I/O请求却需要等上 78ms，为什么 ? 因为发出的 I/O 请求太多(每秒钟约 29个)，假设这些请求是同时发出的，那么平均等待时间可以这样计算 :
+平均等待时间 = 单个 I/O 服务时间 *( 1 + 2 + … + 请求总数 -1) / 请求总数
+应用到上面的例子 : 平均等待时间 = 5ms *(1+2+… +28)/29 = 70ms，和 iostat 给出的 78ms 的平均等待时间很接近。这反过来表明 I/O 是同时发起的。
+每秒发出的 I/O 请求很多(约 29个)，平均队列却不长(只有 2个 左右)，这表明这 29 个请求的到来并不均匀，大部分时间 I/O 是空闲的。
+一秒中有 14.29% 的时间 I/O 队列中是有请求的，也就是说， 85.71% 的时间里 I/O 系统无事可做，所有 29 个 I/O 请求都在 142毫秒之内处理掉了。
+delta(ruse+wuse)/delta(io)= await = 78.21 => delta(ruse+wuse)/s =78.21 * delta(io)/s = 78.21*28.57 =2232.8，表明每秒内的 I/O请求总共需要等待 2232.8ms。所以平均队列长度应为 2232.8ms/1000ms = 2.23，而 iostat 给出的平均队列长度(avgqu-sz) 却为 22.35，为什么 ?! 因为 iostat 中有 bug， avgqu-sz 值应为 2.23，而不是 22.35。
+我们可以根据这些数据分析出 I/O 请求的模式，以及 I/O 的速度和响应时间。
+
+
+Centos 查看系统硬件信息
+uname -a # 查看内核/操作系统/CPU信息的linux系统信息命令
+head -n 1 /etc/issue # 查看操作系统版本，是数字1不是字母L
+cat /proc/cpuinfo # 查看CPU信息的linux系统信息命令
+hostname # 查看计算机名的linux系统信息命令
+lspci -tv # 列出所有PCI设备
+lsusb -tv # 列出所有USB设备的linux系统信息命令
+lsmod # 列出加载的内核模块
+env # 查看环境变量资源
+free -m # 查看内存使用量和交换区使用量
+df -h # 查看各分区使用情况
+du -sh # 查看指定目录的大小
+grep MemTotal /proc/meminfo # 查看内存总量
+grep MemFree /proc/meminfo # 查看空闲内存量
+uptime # 查看系统运行时间、用户数、负载
+cat /proc/loadavg # 查看系统负载磁盘和分区
+mount | column -t # 查看挂接的分区状态
+fdisk -l # 查看所有分区
+swapon -s # 查看所有交换分区
+hdparm -i /dev/hda # 查看磁盘参数(仅适用于IDE设备)
+dmesg | grep IDE # 查看启动时IDE设备检测状况网络
+ifconfig # 查看所有网络接口的属性
+iptables -L # 查看防火墙设置
+route -n # 查看路由表
+netstat -lntp # 查看所有监听端口
+netstat -antp # 查看所有已经建立的连接
+netstat -s # 查看网络统计信息进程
+ps -ef # 查看所有进程
+top # 实时显示进程状态用户
+w # 查看活动用户
+id # 查看指定用户信息
+last # 查看用户登录日志
+cut -d: -f1 /etc/passwd # 查看系统所有用户
+cut -d: -f1 /etc/group # 查看系统所有组
+crontab -l # 查看当前用户的计划任务服务
+chkconfig –list # 列出所有系统服务
+chkconfig –list | grep on # 列出所有启动的系统服务程序
+rpm -qa # 查看所有安装的软件包
+cat /proc/cpuinfo # 查看CPU相关参数的linux系统命令
+cat /proc/partitions # 查看linux硬盘和分区信息的系统信息命令
+cat /proc/meminfo # 查看linux系统内存信息的linux系统命令
+cat /proc/version # 查看版本，类似uname -r
+cat /proc/ioports # 查看设备io端口
+cat /proc/interrupts # 查看中断
+cat /proc/pci # 查看pci设备的信息
+cat /proc/swaps # 查看所有swap分区的信息
+以上命令如果说没有，那么在RHEL6的系统上，你可以用 yum provides “*/lspci”这样类似的命令来查询，然后安装相应的软件包就可以了。
