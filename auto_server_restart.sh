@@ -7,7 +7,7 @@ CheckURL="https://www.***.com"
 
 STATUS_CODE=`curl -o /dev/null -m 10 --connect-timeout 10 -s -w %{http_code} $CheckURL`
 #echo "$CheckURL Status Code:\t$STATUS_CODE"
-if [ "$STATUS_CODE" = "502" ]; then
+if [ "$STATUS_CODE" -ge 500 ]; then
         /etc/init.d/php7.0-fpm restart
         service nginx restart
         /etc/init.d/mysql restart
