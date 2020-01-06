@@ -14,7 +14,7 @@
 #rm -f ${PATH}database_`date -d '-5 days' +%Y-%m-%d`.sql.gz 
 
 expect -c "
-    spawn scp -i /密钥文件.pem ubuntu@52.15.224.251:/var/www/bak/all_database_`date +"%Y-%m-%d"`.sql.gz /home/bak/
+    spawn scp -i /密钥文件.pem ubuntu@IP:/var/www/bak/all_database_`date +"%Y-%m-%d"`.sql.gz /home/bak/
     expect {
          {set timeout 20;  exp_continue;} #此处的jello为密码，自行替换
     }
